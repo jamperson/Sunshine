@@ -12,8 +12,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -63,7 +65,7 @@ public class ForecastFragment extends Fragment {
                 "Sun 6/29 - Sunny - 20/7"
         };
 
-        List<String> weekForecast = new ArrayList<String>(Arrays.asList(data));
+        ArrayList<String> weekForecast = new ArrayList<String>(Arrays.asList(data));
 
 //        for (int i = 0; i < 50; i++) {
 //            String fakeEntry = "Today Sunny " + String.valueOf(i) + " / " + String.valueOf((i + 5));
@@ -79,6 +81,13 @@ public class ForecastFragment extends Fragment {
 
         ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
         listView.setAdapter(mForecastAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String forecast = mForecastAdapter.getItem(position);
+                Toast.makeText(getActivity(), forecast, Toast.LENGTH_SHORT).show();
+            }
+        });
 
         setHasOptionsMenu(true);
 
@@ -101,6 +110,15 @@ public class ForecastFragment extends Fragment {
     }
 
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
+
+        @Override
+        protected void onPostExecute(String[] strings) {
+            super.onPostExecute(strings);
+            mForecastAdapter.clear();
+            for (String item : strings)
+                    mForecastAdapter.add(item);
+        }
+
         @Override
         protected String[] doInBackground(String... params) {
             // These two need to be declared outside the try/catch
