@@ -31,7 +31,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -55,23 +54,7 @@ public class ForecastFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        // Create some dummy data for the ListView.  Here's a sample weekly forecast
-        String[] data = {
-                "Mon 6/23 - Sunny - 31/17",
-                "Tue 6/24 - Foggy - 21/8",
-                "Wed 6/25 - Cloudy - 22/17",
-                "Thurs 6/26 - Rainy - 18/11",
-                "Fri 6/27 - Foggy - 21/10",
-                "Sat 6/28 - TRAPPED IN WEATHERSTATION - 23/18",
-                "Sun 6/29 - Sunny - 20/7"
-        };
-
-        ArrayList<String> weekForecast = new ArrayList<>(Arrays.asList(data));
-
-//        for (int i = 0; i < 50; i++) {
-//            String fakeEntry = "Today Sunny " + String.valueOf(i) + " / " + String.valueOf((i + 5));
-//            weekForecast.add(fakeEntry);
-//        }
+        ArrayList<String> weekForecast = new ArrayList<>();
 
         mForecastAdapter = new ArrayAdapter<>(getActivity(),
                 R.layout.list_item_forecast,
@@ -86,7 +69,6 @@ public class ForecastFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String forecast = mForecastAdapter.getItem(position);
-//                Toast.makeText(getActivity(), forecast, Toast.LENGTH_SHORT).show();
                 Intent myIntent = new Intent(getActivity(), DetailActivity.class);
                 myIntent.putExtra(Intent.EXTRA_TEXT, forecast);
                 startActivity(myIntent);
@@ -110,8 +92,11 @@ public class ForecastFragment extends Fragment {
     private void updateWeather() {
         FetchWeatherTask weatherTask = new FetchWeatherTask();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        weatherTask.execute(prefs.getString(getString(R.string.pref_location_key),
-                getString(R.string.pref_location_default)));
+
+        weatherTask.execute(
+                prefs.getString(getString(R.string.pref_location_key),
+                        getString(R.string.pref_location_default)));
+
     }
 
     @Override
@@ -148,6 +133,7 @@ public class ForecastFragment extends Fragment {
 
             String format = "json";
             String units = "metric";
+
             int numDays = 7;
 
             try {
@@ -243,6 +229,17 @@ public class ForecastFragment extends Fragment {
      * Prepare the weather high/lows for presentation.
      */
     private String formatHighLows(double high, double low) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String unitType = prefs.getString(getString(R.string.pref_temp_unit_key),
+                getString(R.string.pref_temp_unit_metric));
+
+        if (unitType.equals(getString(R.string.pref_temp_unit_imperial))) {
+            high = high * 1.8 + 32;
+            low = low * 1.8 + 32;
+        } else if (!unitType.equals(getString(R.string.pref_temp_unit_metric))) {
+            Log.d(LOG_TAG, "Unit type not found: " + unitType);
+        }
+
         // For presentation, assume the user doesn't care about tenths of a degree.
         long roundedHigh = Math.round(high);
         long roundedLow = Math.round(low);
