@@ -1,9 +1,11 @@
 package me.poernomo.example.sunshine.app;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.text.format.Time;
 import android.util.Log;
@@ -64,14 +66,14 @@ public class ForecastFragment extends Fragment {
                 "Sun 6/29 - Sunny - 20/7"
         };
 
-        ArrayList<String> weekForecast = new ArrayList<String>(Arrays.asList(data));
+        ArrayList<String> weekForecast = new ArrayList<>(Arrays.asList(data));
 
 //        for (int i = 0; i < 50; i++) {
 //            String fakeEntry = "Today Sunny " + String.valueOf(i) + " / " + String.valueOf((i + 5));
 //            weekForecast.add(fakeEntry);
 //        }
 
-        mForecastAdapter = new ArrayAdapter<String>(getActivity(),
+        mForecastAdapter = new ArrayAdapter<>(getActivity(),
                 R.layout.list_item_forecast,
                 R.id.list_item_forecast_textview,
                 weekForecast);
@@ -100,10 +102,22 @@ public class ForecastFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            FetchWeatherTask weatherTask = new FetchWeatherTask();
-            weatherTask.execute("94043");
+            updateWeather();
             return true;
         } else return false;
+    }
+
+    private void updateWeather() {
+        FetchWeatherTask weatherTask = new FetchWeatherTask();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        weatherTask.execute(prefs.getString(getString(R.string.pref_location_key),
+                getString(R.string.pref_location_default)));
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
     }
 
     @Override
@@ -118,7 +132,7 @@ public class ForecastFragment extends Fragment {
             super.onPostExecute(strings);
             mForecastAdapter.clear();
             for (String item : strings)
-                    mForecastAdapter.add(item);
+                mForecastAdapter.add(item);
         }
 
         @Override
@@ -130,7 +144,7 @@ public class ForecastFragment extends Fragment {
             String[] data;
 
             // Will contain the raw JSON response as a string.
-            String forecastJsonStr = null;
+            String forecastJsonStr;
 
             String format = "json";
             String units = "metric";
