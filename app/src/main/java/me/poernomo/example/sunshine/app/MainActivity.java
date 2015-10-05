@@ -1,12 +1,18 @@
 package me.poernomo.example.sunshine.app;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 public class MainActivity extends ActionBarActivity {
+
+    private final String LOG_TAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,8 +43,26 @@ public class MainActivity extends ActionBarActivity {
         if (id == R.id.action_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
             return true;
+        } else if (id == R.id.action_view_loc) {
+            openPreferredLocationInMap();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void openPreferredLocationInMap() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        final String locStr = pref.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+        final Uri loc = Uri.parse("geo:0,0?").buildUpon()
+                .appendQueryParameter("q", locStr).build();
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(loc);
+
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        } else {
+            Log.d(LOG_TAG, "can't find map app!");
+        }
+
     }
 }
