@@ -39,7 +39,7 @@ public class DetailActivity extends ActionBarActivity {
         setContentView(R.layout.activity_detail);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
+                    .add(R.id.container, new DetailFragment())
                     .commit();
         }
     }
@@ -62,6 +62,7 @@ public class DetailActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
 
@@ -71,14 +72,14 @@ public class DetailActivity extends ActionBarActivity {
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderFragment extends Fragment {
+    public static class DetailFragment extends Fragment {
 
-        private static final String LOG_TAG = PlaceholderFragment.class.getSimpleName();
+        private static final String LOG_TAG = DetailFragment.class.getSimpleName();
 
         private static final String FORECAST_SHARE_HASHTAG = " #SunshineApp";
         private String mForecastStr;
 
-        public PlaceholderFragment() {
+        public DetailFragment() {
             setHasOptionsMenu(true);
         }
 
@@ -87,12 +88,13 @@ public class DetailActivity extends ActionBarActivity {
             inflater.inflate(R.menu.detailfragment, menu);
             MenuItem menuItem = menu.findItem(R.id.action_share);
 
-            ShareActionProvider mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+            ShareActionProvider mShareActionProvider =
+                    (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
 
             if (mShareActionProvider != null) {
                 mShareActionProvider.setShareIntent(createShareForecastIntent());
             } else {
-                Log.d(LOG_TAG, "Share Action Provider is null?");
+                Log.w(LOG_TAG, "Share Action Provider is null?");
             }
 
         }
@@ -104,9 +106,9 @@ public class DetailActivity extends ActionBarActivity {
             Intent intent = getActivity().getIntent();
             if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
                 mForecastStr = intent.getStringExtra(Intent.EXTRA_TEXT);
+                ((TextView) rootView.findViewById(R.id.detail_text))
+                        .setText(mForecastStr);
             }
-            ((TextView) rootView.findViewById(R.id.detail_text)).setText(mForecastStr);
-
             return rootView;
         }
 
